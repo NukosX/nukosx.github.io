@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab Text Parser</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      margin-bottom: 12px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Paste Raw Lab Text</h2>
+
+<textarea id="rawInput" placeholder="Paste raw lab report text here..."></textarea>
+
+<button onclick="processText()">Transform</button>
+<button onclick="copyOutput()">Copy All</button>
+
+<script>
+let finalOutput = "";
+
+function find(pattern, raw) {
+  const regex = new RegExp(pattern, "i");
+  const match = raw.match(regex);
+  return match ? match[1] : "";
+}
+
+function processText() {
+  const raw = document.getElementById("rawInput").value;
+
+  const Hb   = find("Hemoglobin\\s+([\\d\\.]+)", raw);
+  const Hct  = find("Hematocrit\\s+([\\d\\.]+)", raw);
+  const Plt  = find("Platelet Count\\s+([\\d,\\.]+)", raw).replace(/,/g, "");
+  const WBC  = find("WBC Count\\s+([\\d,\\.]+)", raw).replace(/,/g, "");
+  const N    = find("Neutrophil\\s+([\\d\\.]+)", raw);
+  const L    = find("Lymphocyte\\s+([\\d\\.]+)", raw);
+
+  const PT   = find("PT\\s+([\\d\\.]+)", raw);
+  const APTT = find("APTT\\s+([\\d\\.]+)", raw);
+  const INR  = find("INR.*?\\s([\\d\\.]+)", raw);
+
+  const BUN  = find("Blood Urea Nitrogen\\s+([\\d\\.]+)", raw);
+  const Cr   = find("Creatinine\\s+([\\d\\.]+)", raw);
+  const Na   = find("Sodium\\s+([\\d\\.]+)", raw);
+  const K    = find("Potassium\\s+([\\d\\.]+)", raw);
+  const Cl   = find("Chloride\\s+([\\d\\.]+)", raw);
+  const HCO3 = find("TCO2\\s+([\\d\\.]+)", raw);
+
+  const Mg   = find("Magnesium\\s+([\\d\\.]+)", raw);
+  const Ca   = find("Calcium\\s+([\\d\\.]+)", raw);
+  const PO   = find("Phosphorus\\s+([\\d\\.]+)", raw);
+
+  const TP   = find("Total Protein\\s+([\\d\\.]+)", raw);
+  const Alb  = find("Albumin\\s+([\\d\\.]+)", raw);
+  const Glb  = find("Globulin\\s+([\\d\\.]+)", raw);
+  const TB   = find("Total Bilirubin\\s+([\\d\\.]+)", raw);
+  const DB   = find("Direct Bilirubin\\s+([\\d\\.]+)", raw);
+
+  const AST  = find("SGOT \\(AST\\)\\s+([\\d\\.]+)", raw);
+  const ALT  = find("SGPT2 \\(ALT\\)\\s+([\\d\\.]+)", raw);
+  const ALP  = find("Alkaline Phosphatase\\s+([\\d\\.]+)", raw);
+
+  finalOutput = `
++-----------------------------------------------------+
+| Hb ${Hb} Hct ${Hct}, Plt ${Plt}, WBC ${WBC}, N${N}, L${L} |
++-----------------------------------------------------+
+| PT${PT}, PTT ${APTT}, INR ${INR}                       |
++-----------------------------------------------------+
+| BUN ${BUN}, Cr ${Cr} Na ${Na} K ${K} Cl ${Cl} HCO3 ${HCO3}|
+| Mg ${Mg} Ca ${Ca} PO ${PO}                             |
++-----------------------------------------------------+
+| TP ${TP} Alb ${Alb} Glb ${Glb}  TB ${TB} DB ${DB}        |
+| AST ${AST} ALT ${ALT} ALP ${ALP}                       |
++-----------------------------------------------------+
+`.trim();
+
+  alert(finalOutput);
+}
+
+function copyOutput() {
+  if (!finalOutput) {
+    alert("Nothing to copy yet.");
+    return;
+  }
+  navigator.clipboard.writeText(finalOutput).then(() => {
+    alert("Copied to clipboard.");
+  });
+}
+</script>
+
+</body>
+</html>
