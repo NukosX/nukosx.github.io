@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Lab Text Parser</title>
+<title>Lab Text - Sornprom</title>
 
 <style>
 body {
@@ -61,11 +61,13 @@ button {
 
 <body>
 
-<h2>Paste Raw Lab Text</h2>
+<h2>Lab Simplifier - Sornprom</h2>
 
-<textarea id="rawInput" placeholder="Paste raw lab report text here..."></textarea>
+<textarea id="rawInput" placeholder="Paste lab report text ..."></textarea>
 
 <button onclick="processText()">Transform</button>
+<button onclick="clearAll()">Clear</button>
+
 
 <!-- Custom alert -->
 <div id="alertOverlay">
@@ -182,10 +184,24 @@ function processText() {
 function closeAlert() {
   document.getElementById("alertOverlay").style.display = "none";
 }
-
+  
 function copyOutput() {
+  if (!finalOutput) return;
   navigator.clipboard.writeText(finalOutput);
 }
+
+function clearAll() {
+  // Clear input
+  document.getElementById("rawInput").value = "";
+
+  // Clear output
+  finalOutput = "";
+  document.getElementById("alertContent").textContent = "";
+
+  // Hide alert if open
+  closeAlert();
+}
+
 </script>
 
 </body>
