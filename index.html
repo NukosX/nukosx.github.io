@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lab Text Parser</title>
-  <style>
-    body {
-      font-family: monospace;
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
-    textarea {
-      width: 100%;
-      height: 300px;
-      margin-bottom: 12px;
-    }
-    button {
-      padding: 8px 16px;
-      margin-right: 8px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Lab Text Parser</title>
+
+<style>
+body {
+  font-family: monospace;
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+textarea {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 12px;
+}
+
+button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+/* Modal overlay */
+#alertOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Alert box */
+#alertBox {
+  background: #fff;
+  padding: 16px;
+  width: 700px;
+  max-width: 95%;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#alertBox pre {
+  background: #f5f5f5;
+  padding: 12px;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre;
+}
+
+#alertActions {
+  text-align: right;
+  margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
 
 <h2>Paste Raw Lab Text</h2>
@@ -29,15 +66,28 @@
 <textarea id="rawInput" placeholder="Paste raw lab report text here..."></textarea>
 
 <button onclick="processText()">Transform</button>
-<button onclick="copyOutput()">Copy All</button>
+
+<!-- Custom alert -->
+<div id="alertOverlay">
+  <div id="alertBox">
+    <pre id="alertContent"></pre>
+    <div id="alertActions">
+      <button onclick="copyOutput()">Copy All</button>
+      <button onclick="closeAlert()">Close</button>
+    </div>
+  </div>
+</div>
 
 <script>
 let finalOutput = "";
 
 function find(pattern, raw) {
-  const regex = new RegExp(pattern, "i");
-  const match = raw.match(regex);
-  return match ? match[1] : "";
+  const m = raw.match(new RegExp(pattern, "i"));
+  return m ? m[1] : "";
+}
+
+function lab(label, value) {
+  return value ? `${label} ${value}` : "";
 }
 
 function processText() {
@@ -45,14 +95,16 @@ function processText() {
 
   const Hb   = find("Hemoglobin\\s+([\\d\\.]+)", raw);
   const Hct  = find("Hematocrit\\s+([\\d\\.]+)", raw);
-  const Plt  = find("Platelet Count\\s+([\\d,\\.]+)", raw).replace(/,/g, "");
-  const WBC  = find("WBC Count\\s+([\\d,\\.]+)", raw).replace(/,/g, "");
+  const Plt  = find("Platelet Count\\s+([\\d,\\.]+)", raw).replace(/,/g,"");
+  const WBC  = find("WBC Count\\s+([\\d,\\.]+)", raw).replace(/,/g,"");
   const N    = find("Neutrophil\\s+([\\d\\.]+)", raw);
   const L    = find("Lymphocyte\\s+([\\d\\.]+)", raw);
 
   const PT   = find("PT\\s+([\\d\\.]+)", raw);
   const APTT = find("APTT\\s+([\\d\\.]+)", raw);
   const INR  = find("INR.*?\\s([\\d\\.]+)", raw);
+
+  const Lactate = find("Lactate\\s+([\\d\\.]+)", raw);
 
   const BUN  = find("Blood Urea Nitrogen\\s+([\\d\\.]+)", raw);
   const Cr   = find("Creatinine\\s+([\\d\\.]+)", raw);
@@ -75,31 +127,64 @@ function processText() {
   const ALT  = find("SGPT2 \\(ALT\\)\\s+([\\d\\.]+)", raw);
   const ALP  = find("Alkaline Phosphatase\\s+([\\d\\.]+)", raw);
 
-  finalOutput = `
-+-----------------------------------------------------+
-| Hb ${Hb} Hct ${Hct}, Plt ${Plt}, WBC ${WBC}, N${N}, L${L} |
-+-----------------------------------------------------+
-| PT${PT}, PTT ${APTT}, INR ${INR}                       |
-+-----------------------------------------------------+
-| BUN ${BUN}, Cr ${Cr} Na ${Na} K ${K} Cl ${Cl} HCO3 ${HCO3}|
-| Mg ${Mg} Ca ${Ca} PO ${PO}                             |
-+-----------------------------------------------------+
-| TP ${TP} Alb ${Alb} Glb ${Glb}  TB ${TB} DB ${DB}        |
-| AST ${AST} ALT ${ALT} ALP ${ALP}                       |
-+-----------------------------------------------------+
-`.trim();
+ finalOutput = [
+  [
+    lab("Hb", Hb),
+    lab("Hct", Hct),
+    lab("Plt", Plt),
+    lab("WBC", WBC),
+    lab("N", N),
+    lab("L", L)
+  ].filter(Boolean).join(" "),
 
-  alert(finalOutput);
+  [
+    lab("BUN", BUN),
+    lab("Cr", Cr),
+    lab("Na", Na),
+    lab("K", K),
+    lab("Cl", Cl),
+    lab("HCO3", HCO3)
+  ].filter(Boolean).join(" "),
+
+  [
+    lab("Ca", Ca),
+    lab("PO4", PO),
+    lab("Mg", Mg),
+    lab("Lactate", Lactate)
+  ].filter(Boolean).join(" "),
+
+  [
+    lab("PT", PT),
+    lab("PTT", APTT),
+    lab("INR", INR)
+  ].filter(Boolean).join(" "),
+
+  [
+    lab("Alb", Alb),
+    lab("Glb", Glb),
+    lab("TB", TB),
+    lab("DB", DB)
+  ].filter(Boolean).join(" "),
+
+  [
+    lab("AST", AST),
+    lab("ALT", ALT),
+    lab("ALP", ALP)
+  ].filter(Boolean).join(" ")
+
+].filter(line => line.length > 0).join("\n");
+
+
+  document.getElementById("alertContent").textContent = finalOutput;
+  document.getElementById("alertOverlay").style.display = "flex";
+}
+
+function closeAlert() {
+  document.getElementById("alertOverlay").style.display = "none";
 }
 
 function copyOutput() {
-  if (!finalOutput) {
-    alert("Nothing to copy yet.");
-    return;
-  }
-  navigator.clipboard.writeText(finalOutput).then(() => {
-    alert("Copied to clipboard.");
-  });
+  navigator.clipboard.writeText(finalOutput);
 }
 </script>
 
