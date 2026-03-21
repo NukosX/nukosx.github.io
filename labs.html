@@ -2,83 +2,308 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Lab Text - Sornprom</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Simplifier - Sornprom</title>
 <style>
-body {
-  font-family: monospace;
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
-}
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
-textarea {
-  width: 100%;
-  height: 300px;
-  margin-bottom: 12px;
-}
+  :root {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8edf2;
+    --border: #d1d9e0;
+    --accent: #0f7a3e;
+    --accent-dim: rgba(15, 122, 62, 0.08);
+    --text: #1a2332;
+    --text-muted: #7a8a9a;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
 
-button {
-  padding: 8px 16px;
-  cursor: pointer;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Modal overlay */
-#alertOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-/* Alert box */
-#alertBox {
-  background: #fff;
-  padding: 16px;
-  width: 700px;
-  max-width: 95%;
-  border-radius: 4px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
+  .wrapper {
+    width: 100%;
+    max-width: 680px;
+  }
 
-#alertBox pre {
-  background: #f5f5f5;
-  padding: 12px;
-  max-height: 300px;
-  overflow: auto;
-  white-space: pre;
-}
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding-top: 8px;
+  }
 
-#alertActions {
-  text-align: right;
-  margin-top: 10px;
-}
+  .logo-dot {
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(15, 122, 62, 0.4);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: var(--mono);
+    font-size: clamp(14px, 4vw, 18px);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  header span {
+    font-family: var(--mono);
+    font-size: clamp(11px, 3vw, 13px);
+    color: var(--accent);
+    margin-left: auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    padding: 12px 16px 8px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: clamp(12px, 3.5vw, 14px);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  textarea::placeholder { color: var(--text-muted); }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: clamp(12px, 3.5vw, 14px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 13px 20px;
+    transition: all 0.15s ease;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+  }
+  .btn-primary:active { background: #22c55e; transform: scale(0.98); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:active { background: var(--border); transform: scale(0.98); }
+
+  /* Modal */
+  #modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+
+  @media (min-width: 480px) {
+    #modalOverlay { align-items: center; }
+  }
+
+  #modalBox {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 640px;
+    overflow: hidden;
+    animation: slideUp 0.2s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  #modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #modalHeader span {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  #modalClose {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #modalContent {
+    padding: 16px;
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #modalContent pre {
+    font-family: var(--mono);
+    font-size: clamp(12px, 3.5vw, 14px);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+  }
+
+  /* Highlight each line group */
+  .line-group {
+    background: var(--accent-dim);
+    border-left: 2px solid var(--accent);
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: clamp(12px, 3.5vw, 14px);
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  #modalActions {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  #modalActions .btn { flex: 1; }
+
+  .copied-toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #ffffff;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 99999;
+    white-space: nowrap;
+  }
+  .copied-toast.show { opacity: 1; }
 </style>
 </head>
-
 <body>
 
-<h2>Lab Simplifier - Sornprom</h2>
+<div class="wrapper">
+  <header>
+    <div class="logo-dot"></div>
+    <h1>Lab Simplifier</h1>
+    <span>Sornprom</span>
+  </header>
 
-<textarea id="rawInput" placeholder="Paste lab report text ..."></textarea>
+  <div class="card">
+    <div class="card-label">// Paste lab report</div>
+    <textarea id="rawInput" placeholder="Paste full lab report text here..."></textarea>
+  </div>
 
-<button onclick="processText()">Transform</button>
-<button onclick="clearAll()">Clear</button>
+  <div class="actions">
+    <button class="btn btn-primary" onclick="processText()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 13 9 20 9"/><polygon points="13 2 2 9 13 16 2 23"/></svg>
+      Transform
+    </button>
+    <button class="btn btn-secondary" onclick="clearAll()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      Clear
+    </button>
+  </div>
+</div>
 
-
-<!-- Custom alert -->
-<div id="alertOverlay">
-  <div id="alertBox">
-    <pre id="alertContent"></pre>
-    <div id="alertActions">
-      <button onclick="copyOutput()">Copy All</button>
-      <button onclick="closeAlert()">Close</button>
+<!-- Modal -->
+<div id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div id="modalBox">
+    <div id="modalHeader">
+      <span>// Result</span>
+      <button id="modalClose" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+    <div id="modalActions">
+      <button class="btn btn-primary" onclick="copyOutput()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy All
+      </button>
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
     </div>
   </div>
 </div>
+
+<div class="copied-toast" id="toast">Copied!</div>
 
 <script>
 let finalOutput = "";
@@ -93,7 +318,8 @@ function lab(label, value) {
 }
 
 function processText() {
-  const raw = document.getElementById("rawInput").value;
+  const raw = document.getElementById("rawInput").value.trim();
+  if (!raw) return;
 
   const Hb   = find("Hemoglobin\\s+([\\d\\.]+)", raw);
   const Hct  = find("Hematocrit\\s+([\\d\\.]+)", raw);
@@ -129,80 +355,53 @@ function processText() {
   const ALT  = find("SGPT2 \\(ALT\\)\\s+([\\d\\.]+)", raw);
   const ALP  = find("Alkaline Phosphatase\\s+([\\d\\.]+)", raw);
 
- finalOutput = [
-  [
-    lab("Hb", Hb),
-    lab("Hct", Hct),
-    lab("Plt", Plt),
-    lab("WBC", WBC),
-    lab("N", N),
-    lab("L", L)
-  ].filter(Boolean).join(" "),
+  const lines = [
+    [lab("Hb",Hb), lab("Hct",Hct), lab("Plt",Plt), lab("WBC",WBC), lab("N",N), lab("L",L)],
+    [lab("BUN",BUN), lab("Cr",Cr), lab("Na",Na), lab("K",K), lab("Cl",Cl), lab("HCO3",HCO3)],
+    [lab("Ca",Ca), lab("PO4",PO), lab("Mg",Mg), lab("Lactate",Lactate)],
+    [lab("PT",PT), lab("PTT",APTT), lab("INR",INR)],
+    [lab("Alb",Alb), lab("Glb",Glb), lab("TB",TB), lab("DB",DB)],
+    [lab("AST",AST), lab("ALT",ALT), lab("ALP",ALP)]
+  ].map(g => g.filter(Boolean).join(" ")).filter(l => l.length > 0);
 
-  [
-    lab("BUN", BUN),
-    lab("Cr", Cr),
-    lab("Na", Na),
-    lab("K", K),
-    lab("Cl", Cl),
-    lab("HCO3", HCO3)
-  ].filter(Boolean).join(" "),
+  finalOutput = lines.join("\n");
 
-  [
-    lab("Ca", Ca),
-    lab("PO4", PO),
-    lab("Mg", Mg),
-    lab("Lactate", Lactate)
-  ].filter(Boolean).join(" "),
+  // Render with styled line groups
+  const container = document.getElementById("modalContent");
+  container.innerHTML = lines.map(l =>
+    `<div class="line-group">${escapeHtml(l)}</div>`
+  ).join("");
 
-  [
-    lab("PT", PT),
-    lab("PTT", APTT),
-    lab("INR", INR)
-  ].filter(Boolean).join(" "),
-
-  [
-    lab("Alb", Alb),
-    lab("Glb", Glb),
-    lab("TB", TB),
-    lab("DB", DB)
-  ].filter(Boolean).join(" "),
-
-  [
-    lab("AST", AST),
-    lab("ALT", ALT),
-    lab("ALP", ALP)
-  ].filter(Boolean).join(" ")
-
-].filter(line => line.length > 0).join("\n");
-
-
-  document.getElementById("alertContent").textContent = finalOutput;
-  document.getElementById("alertOverlay").style.display = "flex";
+  document.getElementById("modalOverlay").style.display = "flex";
 }
 
-function closeAlert() {
-  document.getElementById("alertOverlay").style.display = "none";
+function escapeHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
-  
+
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById("modalOverlay")) closeModal();
+}
+
 function copyOutput() {
   if (!finalOutput) return;
-  navigator.clipboard.writeText(finalOutput);
+  navigator.clipboard.writeText(finalOutput).then(() => {
+    const toast = document.getElementById("toast");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1800);
+  });
 }
 
 function clearAll() {
-  // Clear input
   document.getElementById("rawInput").value = "";
-
-  // Clear output
   finalOutput = "";
-  document.getElementById("alertContent").textContent = "";
-
-  // Hide alert if open
-  closeAlert();
+  document.getElementById("modalContent").innerHTML = "";
+  closeModal();
 }
-
 </script>
-
 </body>
 </html>
