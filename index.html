@@ -2,42 +2,203 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Clinical Tools by Sornprom</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>~/home</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: system-ui, monospace;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: #f8f9fa;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#fafaf8;
+  --text:#1a1a18;
+  --muted:#9a9890;
+  --border:#e5e3de;
 }
 
-.container {
-  text-align: center;
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  padding:48px 40px;
+  max-width:640px;
+  margin:0 auto;
 }
 
-a {
-  display: inline-block;
-  margin-top: 16px;
-  padding: 12px 20px;
-  text-decoration: none;
-  border: 1px solid #000;
-  color: #000;
+@media(max-width:480px){body{padding:32px 24px}}
+
+/* ── TOP ── */
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:96px;
+  opacity:0;
+  animation:in .4s ease forwards;
 }
 
-a:hover {
-  background: #000;
-  color: #fff;
+.logo{
+  font-size:13px;
+  color:var(--text);
+  letter-spacing:0.02em;
+}
+.logo span{color:var(--muted)}
+
+.top-nav{display:flex;gap:24px}
+
+.top-nav a{
+  font-size:12px;
+  color:var(--muted);
+  text-decoration:none;
+  letter-spacing:0.04em;
+  transition:color .2s;
+}
+.top-nav a:hover{color:var(--text)}
+
+/* ── HERO ── */
+.hero{
+  margin-bottom:80px;
+  opacity:0;
+  animation:in .4s ease .1s forwards;
+}
+
+.hero h1{
+  font-family:'Instrument Serif',serif;
+  font-size:clamp(2rem,5vw,2.8rem);
+  font-weight:400;
+  line-height:1.25;
+  letter-spacing:-0.02em;
+  color:var(--text);
+  margin-bottom:16px;
+}
+.hero h1 i{
+  font-style:italic;
+  color:var(--muted);
+}
+
+.hero p{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.9;
+}
+
+/* ── LINKS ── */
+.links{
+  display:flex;
+  flex-direction:column;
+  opacity:0;
+  animation:in .4s ease .2s forwards;
+}
+
+.link-item{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding:20px 0;
+  border-top:1px solid var(--border);
+  text-decoration:none;
+  color:inherit;
+  transition:padding-left .25s ease;
+}
+.link-item:last-child{border-bottom:1px solid var(--border)}
+.link-item:hover{padding-left:8px}
+
+.link-left{display:flex;align-items:baseline;gap:16px}
+
+.link-num{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:0.08em;
+  min-width:20px;
+}
+
+.link-title{
+  font-family:'Instrument Serif',serif;
+  font-size:1.25rem;
+  font-weight:400;
+  letter-spacing:-0.01em;
+  color:var(--text);
+}
+
+.link-right{display:flex;align-items:center;gap:20px}
+
+.link-desc{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:0.02em;
+}
+@media(max-width:480px){.link-desc{display:none}}
+
+.link-arrow{
+  font-size:14px;
+  color:var(--muted);
+  transition:transform .25s, color .25s;
+}
+.link-item:hover .link-arrow{
+  transform:translate(3px,-3px);
+  color:var(--text);
+}
+
+/* ── FOOTER ── */
+footer{
+  margin-top:auto;
+  padding-top:64px;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:0.04em;
+  opacity:0;
+  animation:in .4s ease .35s forwards;
+}
+
+@keyframes in{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
 }
 </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>Clinical Utilities</h1>
-    <a href="labs.html">Lab simplifier</a>
-  </div>
+
+<header class="top">
+  <div class="logo">index<span>.html</span></div>
+  <nav class="top-nav">
+    <a href="labs.html">labs</a>
+    <a href="clipboard.html">clipboard</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>A small place<br>on the <i>internet.</i></h1>
+  <p>Personal workspace. Two pages, no clutter. Create by Sornprom</p>
+</section>
+
+<nav class="links">
+  <a class="link-item" href="labs.html">
+    <div class="link-left">
+      <span class="link-num">01</span>
+      <span class="link-title">Labs</span>
+    </div>
+    <div class="link-right">
+      <span class="link-desc">experiments &amp; prototypes</span>
+      <span class="link-arrow">↗</span>
+    </div>
+  </a>
+
+  <a class="link-item" href="clipboard.html">
+    <div class="link-left">
+      <span class="link-num">02</span>
+      <span class="link-title">Clipboard</span>
+    </div>
+    <div class="link-right">
+      <span class="link-desc">snippets &amp; notes</span>
+      <span class="link-arrow">↗</span>
+    </div>
+  </a>
+</nav>
+
+<footer>© 2026</footer>
+
 </body>
 </html>
