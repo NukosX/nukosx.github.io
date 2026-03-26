@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clipboard — Public Board</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- ============================================================
+  🔥 FIREBASE SETUP — READ THIS FIRST
+  ============================================================
+  1. Go to https://console.firebase.google.com
+  2. Click "Add project" → give it a name → Continue
+  3. Disable Google Analytics (optional) → Create project
+  4. Click "Build" in the left sidebar → "Realtime Database"
+  5. Click "Create Database" → choose a region → Start in TEST MODE
+     (Test mode allows read/write without login — perfect for this app)
+  6. Click the gear icon ⚙ → "Project settings"
+  7. Scroll to "Your apps" → click the </> Web icon
+  8. Register your app (any nickname) → copy the firebaseConfig object
+  9. Paste your config values into the FIREBASE CONFIG section below
+
+  Once done, host this file anywhere:
+  - Firebase Hosting (free):  firebase init hosting → firebase deploy
+  - Netlify (free):           drag & drop this file at netlify.com/drop
+  - GitHub Pages (free):      push to a repo, enable Pages
+  - Any static web host
+
+  ⚠️  Before going live: set Realtime Database Rules to restrict
+      abuse. Replace test rules with:
+      {
+        "rules": {
+          ".read": true,
+          ".write": true,
+          "slots": {
+            "$slotId": {
+              "content": { ".validate": "newData.isString() && newData.val().length <= 50000" }
+            }
+          }
+        }
+      }
+============================================================ -->
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --border: #e2ddd6;
+    --ink: #1c1916;
+    --ink2: #8a8178;
+    --accent: #d4622a;
+    --accent-light: #fdf0ea;
+    --green: #22c55e;
+    --red: #ef4444;
+    --mono: 'DM Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--display);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(28,25,22,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(28,25,22,0.035) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Setup Banner ── */
+  #setupBanner {
+    position: relative; z-index: 10;
+    background: #fef3c7;
+    border-bottom: 1px solid #fcd34d;
+    padding: 12px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #92400e;
+  }
+  #setupBanner strong { font-weight: 600; }
+  #setupBanner a { color: #d97706; }
+  #setupBanner .banner-close {
+    margin-left: auto; flex-shrink: 0;
+    background: none; border: none;
+    cursor: pointer; font-size: 16px; color: #92400e; padding: 0 4px;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative; z-index: 2;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 12px;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 18px; font-weight: 800; letter-spacing: -0.4px; flex-shrink: 0;
+  }
+  .logo-mark {
+    width: 30px; height: 30px; background: var(--accent);
+    border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 15px; color: white;
+  }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink2);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 5px rgba(34,197,94,0.6);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  /* ── Tabs ── */
+  .tabs-wrap {
+    position: relative; z-index: 2;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: stretch;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+
+  .tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 0 16px; height: 46px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    color: var(--ink2); cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    white-space: nowrap; flex-shrink: 0;
+    transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .tab:hover { color: var(--ink); background: var(--bg); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-light); }
+
+  .tab-del {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: transparent; border: none;
+    color: var(--ink2); font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent; opacity: 0;
+  }
+  .tab:hover .tab-del, .tab.active .tab-del { opacity: 1; }
+  .tab-del:hover { background: var(--red); color: white; border-radius: 50%; }
+
+  .tab-add {
+    display: flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; color: var(--ink2);
+    font-size: 20px; cursor: pointer; flex-shrink: 0;
+    border-left: 1px solid var(--border); transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-add:hover { color: var(--accent); background: var(--accent-light); }
+
+  /* ── Main ── */
+  main {
+    position: relative; z-index: 1; flex: 1;
+    display: flex; flex-direction: column;
+    padding: 20px 16px; max-width: 780px;
+    width: 100%; margin: 0 auto; gap: 14px;
+  }
+
+  .slot-label-row { display: flex; align-items: center; gap: 10px; }
+
+  .slot-name-input {
+    font-family: var(--display);
+    font-size: clamp(17px, 5vw, 22px); font-weight: 700;
+    background: transparent; border: none; outline: none;
+    color: var(--ink); flex: 1; min-width: 0;
+    border-bottom: 2px solid transparent; transition: border-color 0.15s; padding-bottom: 2px;
+  }
+  .slot-name-input:focus { border-bottom-color: var(--accent); }
+  .slot-name-input::placeholder { color: var(--border); }
+
+  .sync-label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink2); flex-shrink: 0; transition: color 0.3s;
+  }
+  .sync-label.synced { color: var(--green); }
+  .sync-label.saving { color: var(--accent); }
+  .sync-label.error  { color: var(--red); }
+
+  textarea.editor {
+    width: 100%; min-height: clamp(240px, 55vh, 440px);
+    font-family: var(--mono); font-size: clamp(13px, 3.5vw, 15px);
+    line-height: 1.75; padding: 18px;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: var(--radius); color: var(--ink); outline: none;
+    resize: vertical; box-shadow: var(--shadow); transition: border-color 0.15s;
+  }
+  textarea.editor:focus { border-color: var(--accent); }
+  textarea.editor::placeholder { color: #c5bfb8; }
+
+  /* ── Action bar ── */
+  .action-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .char-count { font-family: var(--mono); font-size: 12px; color: var(--ink2); margin-right: auto; }
+
+  .btn {
+    font-family: var(--display); font-size: 13px; font-weight: 700;
+    padding: 10px 16px; border: none; border-radius: 9px; cursor: pointer;
+    transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #bf561f; }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-secondary { background: var(--surface); color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--ink2); }
+  .btn-secondary:active { transform: scale(0.97); }
+  .btn-danger { background: #fef2f2; color: var(--red); border: 1.5px solid #fecaca; }
+  .btn-danger:hover { background: #fee2e2; }
+  .btn-danger:active { transform: scale(0.97); }
+
+  /* ── QR Modal ── */
+  #qrModal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px); display: none;
+    align-items: center; justify-content: center; z-index: 9999; padding: 20px;
+  }
+  .qr-box {
+    background: var(--surface); border-radius: 20px;
+    padding: 28px 24px 22px; text-align: center;
+    max-width: 300px; width: 100%;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18); animation: popIn 0.2s ease;
+  }
+  .qr-box h3 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .qr-box p  { font-family: var(--mono); font-size: 11px; color: var(--ink2); margin-bottom: 18px; }
+  #qrcode { display: flex; justify-content: center; margin-bottom: 14px; }
+  #qrcode canvas, #qrcode img { border-radius: 10px; border: 4px solid var(--bg); }
+  .qr-url {
+    font-family: var(--mono); font-size: 10px; color: var(--ink2);
+    word-break: break-all; background: var(--bg); padding: 8px 10px;
+    border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border);
+  }
+
+  /* ── Confirm Modal ── */
+  #confirmModal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px); display: none;
+    align-items: center; justify-content: center; z-index: 9999; padding: 20px;
+  }
+  .confirm-box {
+    background: var(--surface); border-radius: 16px;
+    padding: 24px 20px 18px; text-align: center;
+    max-width: 300px; width: 100%;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.15); animation: popIn 0.15s ease;
+  }
+  .confirm-box .icon { font-size: 32px; margin-bottom: 10px; }
+  .confirm-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .confirm-box p  { font-family: var(--mono); font-size: 12px; color: var(--ink2); margin-bottom: 18px; line-height: 1.5; }
+  .confirm-buttons { display: flex; gap: 8px; }
+  .confirm-buttons .btn { flex: 1; justify-content: center; }
+
+  @keyframes popIn { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--ink); color: white;
+    font-family: var(--mono); font-size: 13px;
+    padding: 10px 20px; border-radius: 24px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.22s ease; z-index: 99999; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 500px) {
+    .action-bar { gap: 6px; }
+    .btn { padding: 9px 12px; font-size: 12px; }
+    .char-count { width: 100%; }
+    header { padding: 12px 14px; }
+    .header-actions .btn { padding: 7px 10px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Setup warning — hidden automatically once Firebase is configured -->
+<div id="setupBanner">
+  <span>⚠️</span>
+  <span>
+    <strong>Firebase not configured yet.</strong>
+    Open this file in a text editor and fill in your Firebase config in the
+    <code>FIREBASE CONFIG</code> section near the bottom of the &lt;script&gt; tag.
+    <a href="https://console.firebase.google.com" target="_blank">Open Firebase Console →</a>
+  </span>
+  <button class="banner-close" onclick="document.getElementById('setupBanner').style.display='none'">✕</button>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">✂</div>
+    ClipBoard
+  </div>
+  <div class="status-pill">
+    <span class="live-dot"></span>
+    Public Board
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="showQR()" style="padding:8px 13px;font-size:12px;">📱 QR</button>
+    <button class="btn btn-secondary" onclick="copyPageLink()" style="padding:8px 13px;font-size:12px;">🔗 Link</button>
+  </div>
+</header>
+
+<div class="tabs-wrap" id="tabsWrap"></div>
+
+<main>
+  <div class="slot-label-row">
+    <input class="slot-name-input" id="slotNameInput" placeholder="Slot name…" maxlength="32" oninput="onNameInput()">
+    <span class="sync-label" id="syncLabel">—</span>
+  </div>
+  <textarea class="editor" id="editorArea"
+    placeholder="Type or paste anything here. Changes are saved to Firebase and shared across all devices in real time."></textarea>
+  <div class="action-bar">
+    <span class="char-count" id="charCount">0 characters</span>
+    <button class="btn btn-danger"    onclick="confirmClear()">🗑 Clear</button>
+    <button class="btn btn-secondary" onclick="copyText()">📋 Copy</button>
+    <button class="btn btn-primary"   onclick="saveNow()">Save</button>
+  </div>
+</main>
+
+<!-- QR Modal -->
+<div id="qrModal" onclick="closeOnOverlay(event,'qrModal')">
+  <div class="qr-box">
+    <h3>Scan to open</h3>
+    <p>Opens this public board on any device</p>
+    <div id="qrcode"></div>
+    <div class="qr-url" id="qrUrl"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;"
+      onclick="document.getElementById('qrModal').style.display='none'">Done</button>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" onclick="closeOnOverlay(event,'confirmModal')">
+  <div class="confirm-box">
+    <div class="icon" id="confirmIcon">🗑</div>
+    <h3 id="confirmTitle">Clear this slot?</h3>
+    <p id="confirmMsg">This will erase all text for everyone.</p>
+    <div class="confirm-buttons">
+      <button class="btn btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, remove, get }
+                                  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ============================================================
+//  FIREBASE CONFIG — paste your values here
+//  (from Firebase Console → Project Settings → Your apps → SDK setup)
+// ============================================================
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB3pO99IhCkMCvNQ5TwoDxbxbU2c0702JE",
+  authDomain: "clipboard-83d7d.firebaseapp.com",
+  databaseURL: "https://clipboard-83d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "clipboard-83d7d",
+  storageBucket: "clipboard-83d7d.firebasestorage.app",
+  messagingSenderId: "790121207288",
+  appId: "1:790121207288:web:3fe5ea813eeb3c94fab20d"
+};
+// ============================================================
+
+// Hide setup banner if config looks real
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+if (isConfigured) document.getElementById("setupBanner").style.display = "none";
+
+// ── Init Firebase ──
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── DB helpers ──
+const metaRef = ()  => ref(db, "clipboard/meta");
+const slotRef = id  => ref(db, `clipboard/slots/${id}/content`);
+
+// ── State ──
+let slots        = [];   // [{id, name}]
+let activeId     = null;
+let autoSaveTimer = null;
+let activeListener = null;  // unsubscribe fn for onValue
+
+// ── Boot ──
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadMeta();
+  if (slots.length === 0) await addSlot("General", false);
+  renderTabs();
+  await switchSlot(slots[0].id);
+  document.getElementById("editorArea").addEventListener("input", onEditorInput);
+});
+
+// ── Meta (slot list) ──
+async function loadMeta() {
+  try {
+    const snap = await get(metaRef());
+    if (snap.exists()) slots = snap.val();
+    else slots = [];
+  } catch { slots = []; }
+}
+
+async function saveMeta() {
+  try { await set(metaRef(), slots); } catch(e) { console.error(e); }
+}
+
+// ── Slots ──
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+}
+
+async function addSlot(name, doSwitch = true) {
+  const id = genId();
+  slots.push({ id, name: name || "Slot " + (slots.length + 1) });
+  await saveMeta();
+  renderTabs();
+  if (doSwitch) await switchSlot(id);
+}
+
+async function deleteSlot(id) {
+  if (slots.length === 1) { showToast("Can't delete the last slot"); return; }
+  try { await remove(ref(db, `clipboard/slots/${id}`)); } catch(e) { console.warn("Delete slot error:", e); }
+  slots = slots.filter(s => s.id !== id);
+  await saveMeta();
+  renderTabs();
+  if (activeId === id) await switchSlot(slots[0].id);
+}
+
+async function switchSlot(id) {
+  clearTimeout(autoSaveTimer);
+  // Detach previous listener
+  if (activeListener) { activeListener(); activeListener = null; }
+
+  activeId = id;
+  renderTabs();
+
+  const slot = slots.find(s => s.id === id);
+  document.getElementById("slotNameInput").value = slot ? slot.name : "";
+  setSyncLabel("Loading…", "saving");
+
+  // Attach real-time listener for this slot
+  activeListener = onValue(slotRef(id), snap => {
+    const text = snap.exists() ? snap.val() : "";
+    const ed   = document.getElementById("editorArea");
+    // Only update if user isn't actively typing
+    if (document.activeElement !== ed) {
+      ed.value = text;
+      updateCharCount(text);
+      setSyncLabel("Live ✓", "synced");
+    }
+  }, err => {
+    setSyncLabel("Error", "error");
+    if (err.code === "PERMISSION_DENIED") {
+      showToast("⛔ Permission denied — set DB rules to allow read/write");
+    } else if (!isConfigured) {
+      showToast("Configure Firebase first");
+    } else {
+      showToast("Connection error — check console (F12)");
+    }
+  });
+
+  // Initial load
+  try {
+    const snap = await get(slotRef(id));
+    const text = snap.exists() ? snap.val() : "";
+    document.getElementById("editorArea").value = text;
+    updateCharCount(text);
+    setSyncLabel("Ready", "synced");
+  } catch {
+    setSyncLabel("Error", "error");
+  }
+}
+
+// ── Tabs ──
+function renderTabs() {
+  const wrap = document.getElementById("tabsWrap");
+  wrap.innerHTML = "";
+  slots.forEach(slot => {
+    const tab = document.createElement("div");
+    tab.className = "tab" + (slot.id === activeId ? " active" : "");
+
+    const label = document.createElement("span");
+    label.textContent = slot.name;
+
+    const del = document.createElement("button");
+    del.className = "tab-del";
+    del.title = "Delete slot";
+    del.textContent = "✕";
+    del.addEventListener("click", e => { e.stopPropagation(); promptDeleteSlot(slot.id); });
+
+    tab.appendChild(label);
+    tab.appendChild(del);
+    tab.addEventListener("click", () => switchSlot(slot.id));
+    wrap.appendChild(tab);
+  });
+
+  const add = document.createElement("div");
+  add.className = "tab-add";
+  add.title = "New slot";
+  add.textContent = "+";
+  add.onclick = () => addSlot("Slot " + (slots.length + 1));
+  wrap.appendChild(add);
+}
+
+// ── Editor ──
+function onEditorInput() {
+  const text = document.getElementById("editorArea").value;
+  updateCharCount(text);
+  setSyncLabel("Unsaved", "");
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveNow, 1500);
+}
+
+function onNameInput() {
+  const val  = document.getElementById("slotNameInput").value;
+  const slot = slots.find(s => s.id === activeId);
+  if (slot) {
+    slot.name = val || "Untitled";
+    saveMeta();
+    renderTabs();
+  }
+}
+window.onNameInput = onNameInput;
+
+function updateCharCount(text) {
+  const n = text.length;
+  document.getElementById("charCount").textContent =
+    `${n.toLocaleString()} character${n!==1?"s":""}`;
+}
+
+function setSyncLabel(msg, cls) {
+  const el = document.getElementById("syncLabel");
+  el.textContent = msg;
+  el.className = "sync-label" + (cls ? " " + cls : "");
+}
+
+async function saveNow() {
+  if (!activeId) return;
+  const text = document.getElementById("editorArea").value;
+  setSyncLabel("Saving…", "saving");
+  try {
+    await set(slotRef(activeId), text);
+    setSyncLabel("Saved ✓", "synced");
+  } catch(e) {
+    setSyncLabel("Failed", "error");
+    if (e.code === "PERMISSION_DENIED") {
+      showToast("⛔ Permission denied — set DB rules to allow read/write");
+    } else {
+      showToast("Save failed — check console (F12)");
+    }
+  }
+}
+window.saveNow = saveNow;
+
+// ── Clear / Delete confirm ──
+function showConfirm(icon, title, msg, okLabel, cb) {
+  document.getElementById("confirmIcon").textContent  = icon;
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("confirmMsg").textContent   = msg;
+  document.getElementById("confirmOkBtn").textContent = okLabel;
+  document.getElementById("confirmOkBtn").onclick = () => {
+    document.getElementById("confirmModal").style.display = "none";
+    cb();
+  };
+  document.getElementById("confirmModal").style.display = "flex";
+}
+
+function confirmClear() {
+  showConfirm("🗑", "Clear this slot?",
+    "All text in this slot will be erased for everyone.",
+    "🗑 Clear",
+    async () => {
+      document.getElementById("editorArea").value = "";
+      updateCharCount("");
+      await set(slotRef(activeId), "");
+      setSyncLabel("Cleared", "synced");
+      showToast("Slot cleared");
+    }
+  );
+}
+window.confirmClear = confirmClear;
+
+function promptDeleteSlot(id) {
+  const slot = slots.find(s => s.id === id);
+  showConfirm("🗂", `Delete "${slot?.name}"?`,
+    "This tab and all its content will be permanently removed.",
+    "Delete",
+    () => deleteSlot(id)
+  );
+}
+
+// ── QR / Link ──
+function copyText() {
+  const text = document.getElementById("editorArea").value;
+  if (!text) { showToast("Nothing to copy"); return; }
+  navigator.clipboard.writeText(text).then(() => showToast("Copied!"));
+}
+window.copyText = copyText;
+
+function copyPageLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => showToast("Link copied!"));
+}
+window.copyPageLink = copyPageLink;
+
+function showQR() {
+  const url = window.location.href;
+  document.getElementById("qrUrl").textContent = url;
+  document.getElementById("qrcode").innerHTML = "";
+  new QRCode(document.getElementById("qrcode"), {
+    text: url, width: 200, height: 200,
+    colorDark: "#1c1916", colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById("qrModal").style.display = "flex";
+}
+window.showQR = showQR;
+
+function closeOnOverlay(e, id) {
+  if (e.target === document.getElementById(id))
+    document.getElementById(id).style.display = "none";
+}
+window.closeOnOverlay = closeOnOverlay;
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
+}
+window.showToast = showToast;
+</script>
+
+</body>
+</html>
