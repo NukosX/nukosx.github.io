@@ -10,9 +10,13 @@
 
 :root{
   --bg:#fafaf8;
+  --surface:#ffffff;
+  --surface2:#f3f2ef;
   --text:#1a1a18;
   --muted:#9a9890;
   --border:#e5e3de;
+  --accent:#2d5a42;
+  --accent-dim:rgba(45,90,66,0.07);
 }
 
 body{
@@ -23,40 +27,62 @@ body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
-  padding:48px 40px;
-  max-width:640px;
-  margin:0 auto;
 }
 
-@media(max-width:480px){body{padding:32px 24px}}
-
-/* ── TOP ── */
-.top{
+/* ── SHARED NAV ── */
+.site-nav{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:96px;
+  padding:16px 40px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;
+  top:0;
+  z-index:100;
   opacity:0;
   animation:in .4s ease forwards;
 }
 
-.logo{
+.nav-logo{
   font-size:13px;
+  font-weight:300;
   color:var(--text);
+  text-decoration:none;
   letter-spacing:0.02em;
 }
-.logo span{color:var(--muted)}
+.nav-logo span{color:var(--muted)}
 
-.top-nav{display:flex;gap:24px}
+.nav-links{display:flex;gap:24px;align-items:center}
 
-.top-nav a{
+.nav-link{
   font-size:12px;
   color:var(--muted);
   text-decoration:none;
   letter-spacing:0.04em;
   transition:color .2s;
+  padding-bottom:2px;
 }
-.top-nav a:hover{color:var(--text)}
+.nav-link:hover{color:var(--text)}
+.nav-link.active{
+  color:var(--text);
+  border-bottom:1px solid var(--text);
+}
+
+@media(max-width:480px){.site-nav{padding:14px 24px}.nav-links{gap:16px}}
+
+/* ── PAGE CONTENT ── */
+.page{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:64px 40px 48px;
+  max-width:640px;
+  margin:0 auto;
+  width:100%;
+}
+
+@media(max-width:480px){.page{padding:40px 24px 32px}}
 
 /* ── HERO ── */
 .hero{
@@ -144,13 +170,13 @@ body{
 
 /* ── FOOTER ── */
 footer{
-  margin-top:auto;
   padding-top:64px;
   font-size:11px;
   color:var(--muted);
   letter-spacing:0.04em;
   opacity:0;
   animation:in .4s ease .35s forwards;
+  margin-top:auto;
 }
 
 @keyframes in{
@@ -161,44 +187,47 @@ footer{
 </head>
 <body>
 
-<header class="top">
-  <div class="logo">index<span>.html</span></div>
-  <nav class="top-nav">
-    <a href="labs.html">labs</a>
-    <a href="clipboard.html">clipboard</a>
-  </nav>
-</header>
-
-<section class="hero">
-  <h1>A small place<br>on the <i>internet.</i></h1>
-  <p>Personal workspace. Two pages, no clutter. Create by Sornprom</p>
-</section>
-
-<nav class="links">
-  <a class="link-item" href="labs.html">
-    <div class="link-left">
-      <span class="link-num">01</span>
-      <span class="link-title">Labs</span>
-    </div>
-    <div class="link-right">
-      <span class="link-desc">experiments &amp; prototypes</span>
-      <span class="link-arrow">↗</span>
-    </div>
-  </a>
-
-  <a class="link-item" href="clipboard.html">
-    <div class="link-left">
-      <span class="link-num">02</span>
-      <span class="link-title">Clipboard</span>
-    </div>
-    <div class="link-right">
-      <span class="link-desc">snippets &amp; notes</span>
-      <span class="link-arrow">↗</span>
-    </div>
-  </a>
+<nav class="site-nav">
+  <a href="index.html" class="nav-logo">~/home<span>.html</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">home</a>
+    <a href="labs.html" class="nav-link">labs</a>
+    <a href="clipboard.html" class="nav-link">clipboard</a>
+  </div>
 </nav>
 
-<footer>© 2026</footer>
+<div class="page">
+  <section class="hero">
+    <h1>A small place<br>on the <i>internet.</i></h1>
+    <p>Personal workspace. Two pages, no clutter. Created by Sornprom</p>
+  </section>
+
+  <nav class="links">
+    <a class="link-item" href="labs.html">
+      <div class="link-left">
+        <span class="link-num">01</span>
+        <span class="link-title">Labs</span>
+      </div>
+      <div class="link-right">
+        <span class="link-desc">experiments &amp; prototypes</span>
+        <span class="link-arrow">↗</span>
+      </div>
+    </a>
+
+    <a class="link-item" href="clipboard.html">
+      <div class="link-left">
+        <span class="link-num">02</span>
+        <span class="link-title">Clipboard</span>
+      </div>
+      <div class="link-right">
+        <span class="link-desc">snippets &amp; notes</span>
+        <span class="link-arrow">↗</span>
+      </div>
+    </a>
+  </nav>
+
+  <footer>© 2026</footer>
+</div>
 
 </body>
 </html>
