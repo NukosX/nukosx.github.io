@@ -405,6 +405,7 @@ body{
     <a href="labs.html" class="nav-link">labs</a>
     <a href="clipboard.html" class="nav-link">clipboard</a>
     <a href="dose.html" class="nav-link active">dose</a>
+    <a href="meds.html" class="nav-link">meds</a>
   </div>
 </nav>
 
@@ -431,8 +432,23 @@ body{
   </div>
 </div>
 
-<script>
-const MEDS = [
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB3pO99IhCkMCvNQ5TwoDxbxbU2c0702JE",
+  authDomain: "clipboard-83d7d.firebaseapp.com",
+  databaseURL: "https://clipboard-83d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "clipboard-83d7d",
+  storageBucket: "clipboard-83d7d.firebasestorage.app",
+  messagingSenderId: "790121207288",
+  appId: "1:790121207288:web:3fe5ea813eeb3c94fab20d"
+};
+const app      = initializeApp(firebaseConfig);
+const db       = getDatabase(app);
+const medsDbRef = () => ref(db, "dose/meds");
+const MEDS_SEED = [
   {
     id: 1, category: "Antimicrobial", name: "Amoxicillin",
     concentration_label: "250 mg/5ml", conc_mg_per_ml: 50,
@@ -664,7 +680,6 @@ const MEDS = [
   }
 ];
 
-const CATEGORIES = [...new Set(MEDS.map(m => m.category))];
 const CAT_COLORS = {
   "Antimicrobial": "#2d5a42", "Analgesic / Antipyretic": "#8b3a8b",
   "Gastro-intestinal": "#2a6a2a", "Antihistamine": "#8b4a00",
@@ -672,7 +687,22 @@ const CAT_COLORS = {
   "Laxative": "#4a4a00"
 };
 
+let medsData   = [];
 let selectedMed = null;
+
+// ── Boot: seed Firebase if empty, then listen for live changes ──
+(async () => {
+  const snap = await get(medsDbRef());
+  if (!snap.exists() || !snap.val() || Object.keys(snap.val()).length === 0) {
+    const batch = {};
+    MEDS_SEED.forEach(m => { batch[m.id] = m; });
+    await set(medsDbRef(), batch);
+  }
+  onValue(medsDbRef(), s => {
+    medsData = s.exists() ? Object.values(s.val()).filter(Boolean) : [...MEDS_SEED];
+    renderList(document.getElementById('search').value.toLowerCase());
+  });
+})();
 
 function filterMeds() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -681,14 +711,15 @@ function filterMeds() {
 
 function renderList(query = '') {
   const listEl = document.getElementById('med-list');
+  const cats   = [...new Set(medsData.map(m => m.category))];
   let html = '';
-  CATEGORIES.forEach(cat => {
-    const meds = MEDS.filter(m => m.category === cat &&
+  cats.forEach(cat => {
+    const meds = medsData.filter(m => m.category === cat &&
       (m.name.toLowerCase().includes(query) || cat.toLowerCase().includes(query) || m.concentration_label.toLowerCase().includes(query)));
     if (!meds.length) return;
     html += `<div class="cat-label">${cat}</div>`;
     meds.forEach(m => {
-      html += `<button class="med-btn ${selectedMed && selectedMed.id === m.id ? 'active' : ''}" onclick="selectMed(${m.id})">
+      html += `<button class="med-btn ${selectedMed && selectedMed.id === m.id ? 'active' : ''}" onclick="selectMed(${JSON.stringify(String(m.id))})">
         ${m.name}<span class="conc">${m.concentration_label}</span>
       </button>`;
     });
@@ -697,7 +728,7 @@ function renderList(query = '') {
 }
 
 function selectMed(id) {
-  selectedMed = MEDS.find(m => m.id === id);
+  selectedMed = medsData.find(m => String(m.id) === String(id));
   renderList(document.getElementById('search').value.toLowerCase());
   renderMain();
 }
@@ -867,7 +898,11 @@ function fmt(n, dec = 2) {
   return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(dec).replace(/\.?0+$/, '');
 }
 
-renderList();
+// Expose functions called from HTML attributes (required for module scripts)
+window.filterMeds = filterMeds;
+window.selectMed  = selectMed;
+window.syncWeight = syncWeight;
+window.calcDose   = calcDose;
 </script>
 </body>
 </html>
