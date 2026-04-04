@@ -29,7 +29,8 @@ body{
   font-weight:300;
   background:var(--bg);
   color:var(--text);
-  min-height:100vh;
+  height:100vh;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
 }
@@ -183,9 +184,20 @@ body{
 
 /* ── MAIN ── */
 main{
-  flex:1;display:flex;flex-direction:column;
-  padding:24px 40px;max-width:780px;
-  width:100%;margin:0 auto;gap:14px;
+  display:grid;
+  grid-template-columns:3fr 1fr;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  width:100%;
+}
+
+/* ── LEFT: editor column (75%) ── */
+.cb-editor-col{
+  display:flex;flex-direction:column;gap:14px;
+  padding:24px 24px 24px 40px;
+  overflow-y:auto;
+  min-height:0;
 }
 
 .slot-label-row{display:flex;align-items:center;gap:10px}
@@ -224,6 +236,127 @@ textarea.editor::placeholder{color:#c5c2bc}
 /* ── ACTION BAR ── */
 .action-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .char-count{font-size:11px;color:var(--muted);margin-right:auto;letter-spacing:0.02em}
+
+/* ── FILES SECTION (right panel, 25%) ── */
+.files-section{
+  display:flex;flex-direction:column;
+  border-left:1px solid var(--border);
+  background:var(--surface);
+  overflow:hidden;
+  min-height:0;
+}
+
+.files-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;border-bottom:1px solid var(--border);
+  flex-shrink:0;gap:6px;
+}
+
+.files-header-left{display:flex;align-items:center;gap:6px;min-width:0}
+.files-title{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);flex-shrink:0}
+.files-count{font-size:11px;color:var(--muted);letter-spacing:0.02em;flex-shrink:0}
+
+/* Bulk action buttons */
+.files-actions{display:flex;gap:4px;flex-shrink:0}
+.files-action-btn{
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:400;
+  letter-spacing:0.02em;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg);color:var(--muted);cursor:pointer;
+  padding:4px 8px;transition:all .15s;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:4px;
+  -webkit-tap-highlight-color:transparent;
+}
+.files-action-btn:hover{color:var(--text);border-color:var(--muted)}
+.files-action-btn.danger:hover{color:var(--red);border-color:var(--red);background:#fdf2f2}
+
+.files-body{
+  display:flex;flex-direction:column;
+  flex:1;overflow:hidden;min-height:0;
+}
+
+/* Drop zone */
+.files-drop{
+  margin:10px;
+  border:1.5px dashed var(--border);
+  border-radius:8px;
+  padding:14px 10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  font-size:10px;color:var(--muted);letter-spacing:0.03em;text-align:center;
+  transition:all .2s;cursor:pointer;flex-shrink:0;
+}
+.files-drop:hover,.files-drop.dragover{
+  border-color:var(--accent);
+  background:var(--accent-dim);
+  color:var(--accent);
+}
+.files-drop svg{flex-shrink:0;transition:transform .2s}
+.files-drop:hover svg,.files-drop.dragover svg{transform:translateY(-2px)}
+
+/* File grid */
+.files-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+  gap:6px;
+  padding:0 10px 10px;
+  overflow-y:auto;
+  flex:1;
+  min-height:0;
+  align-content:start;
+}
+.files-grid:empty{display:none}
+
+.file-card{
+  position:relative;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 8px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:grab;
+  transition:box-shadow .15s,border-color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.file-card:hover{border-color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.file-card:active{cursor:grabbing}
+
+.file-icon{
+  width:34px;height:42px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:400;letter-spacing:0.04em;
+  color:#fff;flex-shrink:0;position:relative;overflow:hidden;
+}
+.file-icon-pdf{background:#c0392b}
+.file-icon-word{background:#2563eb}
+.file-icon-image{background:#6b7280;overflow:hidden}
+.file-icon-image img{width:100%;height:100%;object-fit:cover}
+.file-icon-default{background:var(--muted)}
+.file-icon-corner{
+  position:absolute;top:0;right:0;
+  width:0;height:0;
+  border-style:solid;
+  border-width:0 8px 8px 0;
+  border-color:transparent rgba(255,255,255,0.3) transparent transparent;
+}
+
+.file-name{
+  font-size:10px;color:var(--text);letter-spacing:0.01em;
+  text-align:center;word-break:break-all;line-height:1.4;
+  max-width:100%;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.file-size{font-size:9px;color:var(--muted);letter-spacing:0.02em}
+
+.file-del{
+  position:absolute;top:4px;right:4px;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--red);color:#fff;border:none;
+  font-size:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.file-card:hover .file-del{opacity:1}
+.file-del:hover{background:#a93226}
 
 .btn{
   font-family:'DM Mono',monospace;font-size:12px;font-weight:400;
@@ -297,9 +430,12 @@ textarea.editor::placeholder{color:#c5c2bc}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-@media(max-width:500px){
-  main{padding:20px 24px}
-  .toolbar{padding:10px 24px}
+@media(max-width:600px){
+  body{height:auto;overflow:auto}
+  main{grid-template-columns:1fr;overflow:visible}
+  .cb-editor-col{padding:20px;overflow:visible}
+  .files-section{border-left:none;border-top:1px solid var(--border);min-height:300px}
+  .toolbar{padding:10px 20px}
   .action-bar{gap:6px}
   .btn{padding:8px 12px;font-size:11px}
   .char-count{width:100%}
@@ -314,6 +450,7 @@ textarea.editor::placeholder{color:#c5c2bc}
     <a href="index.html" class="nav-link">home</a>
     <a href="labs.html" class="nav-link">labs</a>
     <a href="clipboard.html" class="nav-link active">clipboard</a>
+    <a href="dose.html" class="nav-link">dose</a>
   </div>
 </nav>
 
@@ -322,7 +459,7 @@ textarea.editor::placeholder{color:#c5c2bc}
   <span>⚠</span>
   <span>
     <strong>Firebase not configured yet.</strong>
-    Open this file and fill in your Firebase config in the <code>FIREBASE CONFIG</code> section near the bottom of the &lt;script&gt; tag.
+    Fill in your config in the <code>FIREBASE CONFIG</code> section in the &lt;script&gt; tag. Also enable <strong>Realtime Database</strong> and <strong>Storage</strong> in test mode.
     <a href="https://console.firebase.google.com" target="_blank">Open Firebase Console →</a>
   </span>
   <button class="banner-close" onclick="document.getElementById('setupBanner').style.display='none'">✕</button>
@@ -345,18 +482,57 @@ textarea.editor::placeholder{color:#c5c2bc}
 <div class="tabs-wrap" id="tabsWrap"></div>
 
 <main>
-  <div class="slot-label-row">
-    <input class="slot-name-input" id="slotNameInput" placeholder="Slot name…" maxlength="32" oninput="onNameInput()">
-    <span class="sync-label" id="syncLabel">—</span>
+
+  <!-- ── LEFT: text editor (75%) ── -->
+  <div class="cb-editor-col">
+    <div class="slot-label-row">
+      <input class="slot-name-input" id="slotNameInput" placeholder="Slot name…" maxlength="32" oninput="onNameInput()">
+      <span class="sync-label" id="syncLabel">—</span>
+    </div>
+    <textarea class="editor" id="editorArea"
+      placeholder="Type or paste anything here. Changes are saved to Firebase and shared across all devices in real time."></textarea>
+    <div class="action-bar">
+      <span class="char-count" id="charCount">0 characters</span>
+      <button class="btn btn-danger"    onclick="confirmClear()">🗑 Clear</button>
+      <button class="btn btn-secondary" onclick="copyText()">📋 Copy</button>
+      <button class="btn btn-primary"   onclick="saveNow()">Save</button>
+    </div>
   </div>
-  <textarea class="editor" id="editorArea"
-    placeholder="Type or paste anything here. Changes are saved to Firebase and shared across all devices in real time."></textarea>
-  <div class="action-bar">
-    <span class="char-count" id="charCount">0 characters</span>
-    <button class="btn btn-danger"    onclick="confirmClear()">🗑 Clear</button>
-    <button class="btn btn-secondary" onclick="copyText()">📋 Copy</button>
-    <button class="btn btn-primary"   onclick="saveNow()">Save</button>
+
+  <!-- ── RIGHT: files panel (25%) ── -->
+  <div class="files-section">
+    <div class="files-header">
+      <div class="files-header-left">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        <span class="files-title">Files</span>
+        <span class="files-count" id="filesCount">0 files</span>
+      </div>
+      <div class="files-actions">
+        <button class="files-action-btn" onclick="filesDownloadAll()" title="Download all files">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.36"/></svg>
+          All
+        </button>
+        <button class="files-action-btn danger" onclick="filesRemoveAll()" title="Remove all files">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+    <div class="files-body">
+      <div class="files-drop" id="filesDrop"
+           onclick="document.getElementById('filesPickInput').click()"
+           ondragover="filesDragOver(event)"
+           ondragleave="filesDragLeave(event)"
+           ondrop="filesHandleDrop(event)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        Drop any file here<br>or click to browse
+      </div>
+      <div class="files-grid" id="filesGrid"></div>
+    </div>
   </div>
+  <input type="file" id="filesPickInput" multiple
+         onchange="filesFromInput(this)" style="display:none">
+
 </main>
 
 <!-- QR Modal -->
@@ -412,8 +588,8 @@ const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 if (isConfigured) document.getElementById("setupBanner").style.display = "none";
 
 // ── Init Firebase ──
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const app     = initializeApp(firebaseConfig);
+const db      = getDatabase(app);
 
 // ── DB helpers ──
 const metaRef = ()  => ref(db, "clipboard/meta");
@@ -670,6 +846,193 @@ function showToast(msg) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 2300);
 }
 window.showToast = showToast;
+
+// ════════════════════════════════════════
+//  FILES — Base64 in Firebase Realtime DB
+// ════════════════════════════════════════
+
+const filesMetaRef = () => ref(db, "clipboard/files");
+const fileMetaRef  = id => ref(db, `clipboard/files/${id}`);
+
+const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5 MB practical cap for RTDB
+
+// In-memory cache for bulk operations
+let filesList = [];
+
+// ── Helper: encode file to base64 data URL ──
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload  = () => res(reader.result); // "data:mime;base64,..."
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Live listener — updates grid on any device in real time ──
+onValue(filesMetaRef(), snap => {
+  filesList = snap.exists() ? Object.values(snap.val()) : [];
+  renderFiles(filesList);
+}, err => {
+  console.warn("Files listener:", err);
+});
+
+// ── Upload (encode → store in RTDB) ──
+async function saveFiles(files) {
+  setFilesStatus("Uploading…");
+  for (const file of files) {
+    if (file.size > FILE_SIZE_LIMIT) {
+      showToast(`${file.name} exceeds 5 MB limit — skipped`);
+      continue;
+    }
+    try {
+      const id   = genId();
+      const data = await fileToBase64(file);
+      await set(fileMetaRef(id), {
+        id, name: file.name, type: file.type || "",
+        size: file.size, data, uploadedAt: Date.now()
+      });
+    } catch(e) {
+      console.error(e);
+      showToast(`Failed to save ${file.name}`);
+    }
+  }
+  setFilesStatus("");
+}
+
+// ── Download single (data URL → anchor click) ──
+function downloadFile(f) {
+  const a = document.createElement("a");
+  a.href = f.data; a.download = f.name; a.click();
+}
+
+// ── Delete single ──
+async function deleteFile(f) {
+  await remove(fileMetaRef(f.id));
+}
+
+// ── Download all ──
+function filesDownloadAll() {
+  if (!filesList.length) { showToast("No files to download"); return; }
+  showToast(`Downloading ${filesList.length} file${filesList.length!==1?"s":""}…`);
+  filesList.forEach((f, i) => setTimeout(() => downloadFile(f), i * 300));
+}
+
+// ── Remove all ──
+async function filesRemoveAll() {
+  if (!filesList.length) { showToast("No files to remove"); return; }
+  await Promise.all(filesList.map(f => deleteFile(f)));
+  showToast("All files removed");
+}
+
+// ── Render grid ──
+function renderFiles(files) {
+  const grid  = document.getElementById("filesGrid");
+  const count = document.getElementById("filesCount");
+  count.textContent = files.length ? `${files.length} file${files.length!==1?"s":""}` : "0 files";
+  grid.innerHTML = "";
+
+  files.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "file-card";
+    card.title = `${f.name}\n${fmtSize(f.size)}\nClick to download`;
+
+    card.addEventListener("click", e => {
+      if (e.target.classList.contains("file-del")) return;
+      downloadFile(f);
+    });
+
+    // Icon
+    const cls  = fileIconClass(f);
+    const icon = document.createElement("div");
+    icon.className = "file-icon";
+    icon.style.background = ICON_COLORS[cls] || "#9a9890";
+
+    if (cls === "file-icon-image" && f.data) {
+      icon.innerHTML = `<img src="${f.data}" alt="${f.name}" style="width:100%;height:100%;object-fit:cover">`;
+    } else {
+      icon.innerHTML = fileIconInner(f);
+    }
+    card.appendChild(icon);
+
+    const name = document.createElement("div");
+    name.className = "file-name";
+    name.textContent = f.name;
+    card.appendChild(name);
+
+    const size = document.createElement("div");
+    size.className = "file-size";
+    size.textContent = fmtSize(f.size);
+    card.appendChild(size);
+
+    const del = document.createElement("button");
+    del.className = "file-del";
+    del.title = "Remove";
+    del.textContent = "✕";
+    del.onclick = async e => { e.stopPropagation(); await deleteFile(f); };
+    card.appendChild(del);
+
+    grid.appendChild(card);
+  });
+}
+
+// ── Icon helpers ──
+function fileIconClass(f) {
+  const t = f.type || "", n = f.name.toLowerCase();
+  if (t === "application/pdf"    || n.endsWith(".pdf"))                         return "file-icon-pdf";
+  if (t.includes("word")         || n.endsWith(".doc")  || n.endsWith(".docx")) return "file-icon-word";
+  if (t.includes("spreadsheet")  || t.includes("excel")
+    || n.endsWith(".xls") || n.endsWith(".xlsx") || n.endsWith(".csv"))         return "file-icon-excel";
+  if (t.includes("presentation") || t.includes("powerpoint")
+    || n.endsWith(".ppt") || n.endsWith(".pptx"))                               return "file-icon-ppt";
+  if (t.startsWith("image/"))                                                   return "file-icon-image";
+  if (t.startsWith("video/"))                                                   return "file-icon-video";
+  if (t.startsWith("audio/"))                                                   return "file-icon-audio";
+  if (t.startsWith("text/") || n.endsWith(".txt") || n.endsWith(".md")
+    || n.endsWith(".json") || n.endsWith(".xml"))                               return "file-icon-text";
+  if (t.includes("zip") || t.includes("compressed") || t.includes("tar")
+    || n.endsWith(".zip") || n.endsWith(".rar") || n.endsWith(".7z")
+    || n.endsWith(".tar") || n.endsWith(".gz"))                                 return "file-icon-zip";
+  return "file-icon-default";
+}
+const ICON_COLORS = {
+  "file-icon-pdf":"#c0392b","file-icon-word":"#2563eb","file-icon-excel":"#16a34a",
+  "file-icon-ppt":"#d97706","file-icon-image":"#6b7280","file-icon-video":"#7c3aed",
+  "file-icon-audio":"#db2777","file-icon-text":"#475569","file-icon-zip":"#92400e",
+  "file-icon-default":"#9a9890"
+};
+const ICON_LABELS = {
+  "file-icon-pdf":"PDF","file-icon-word":"DOC","file-icon-excel":"XLS",
+  "file-icon-ppt":"PPT","file-icon-video":"VID","file-icon-audio":"AUD",
+  "file-icon-text":"TXT","file-icon-zip":"ZIP"
+};
+function fileIconInner(f) {
+  const cls   = fileIconClass(f);
+  const label = ICON_LABELS[cls] || f.name.split(".").pop().toUpperCase().slice(0,4) || "FILE";
+  return `<span style="font-size:9px">${label}</span><div class="file-icon-corner"></div>`;
+}
+function fmtSize(b) {
+  if (b < 1024) return b + " B";
+  if (b < 1048576) return (b/1024).toFixed(1) + " KB";
+  return (b/1048576).toFixed(1) + " MB";
+}
+function setFilesStatus(msg) {
+  document.getElementById("filesCount").textContent = msg || (filesList.length + ` file${filesList.length!==1?"s":""}`);
+}
+
+// ── Drag / input handlers (exposed to HTML) ──
+function filesDragOver(e)  { e.preventDefault(); e.stopPropagation(); document.getElementById("filesDrop").classList.add("dragover"); }
+function filesDragLeave()  { document.getElementById("filesDrop").classList.remove("dragover"); }
+function filesHandleDrop(e){ e.preventDefault(); e.stopPropagation(); document.getElementById("filesDrop").classList.remove("dragover"); const f = Array.from(e.dataTransfer.files); if(f.length) saveFiles(f); }
+function filesFromInput(i) { const f = Array.from(i.files); if(f.length) saveFiles(f); i.value=""; }
+
+window.filesDownloadAll = filesDownloadAll;
+window.filesRemoveAll   = filesRemoveAll;
+window.filesDragOver    = filesDragOver;
+window.filesDragLeave   = filesDragLeave;
+window.filesHandleDrop  = filesHandleDrop;
+window.filesFromInput   = filesFromInput;
+
 </script>
 
 </body>

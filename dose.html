@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dose — ~/home</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#fafaf8;
+  --surface:#ffffff;
+  --surface2:#f3f2ef;
+  --text:#1a1a18;
+  --muted:#9a9890;
+  --border:#e5e3de;
+  --accent:#2d5a42;
+  --accent-dim:rgba(45,90,66,0.07);
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ── SHARED NAV ── */
+.site-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 40px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+.nav-logo{
+  font-size:13px;
+  font-weight:300;
+  color:var(--text);
+  text-decoration:none;
+  letter-spacing:0.02em;
+}
+.nav-logo span{color:var(--muted)}
+
+.nav-links{display:flex;gap:24px;align-items:center}
+
+.nav-link{
+  font-size:12px;
+  color:var(--muted);
+  text-decoration:none;
+  letter-spacing:0.04em;
+  transition:color .2s;
+  padding-bottom:2px;
+}
+.nav-link:hover{color:var(--text)}
+.nav-link.active{
+  color:var(--text);
+  border-bottom:1px solid var(--text);
+}
+
+@media(max-width:480px){.site-nav{padding:14px 24px}.nav-links{gap:14px}}
+
+/* ── SUB-HEADER ── */
+.sub-header{
+  padding:12px 40px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+}
+.sub-header h1{
+  font-family:'Instrument Serif',serif;
+  font-size:1.1rem;
+  font-weight:400;
+  letter-spacing:-0.01em;
+  color:var(--text);
+}
+.sub-header p{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:0.02em;
+}
+@media(max-width:480px){.sub-header{padding:10px 24px;flex-direction:column;gap:2px}}
+
+/* ── LAYOUT ── */
+.layout{
+  display:flex;
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:280px;
+  min-width:240px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+}
+
+.search-wrap{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  background:var(--surface);
+  z-index:10;
+}
+
+.search-wrap input{
+  width:100%;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:12px;
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  background:var(--bg);
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s;
+}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-wrap input:focus{border-color:var(--accent)}
+
+.cat-label{
+  padding:10px 12px 4px;
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+.med-btn{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:9px 14px;
+  background:none;
+  border:none;
+  font-size:12px;
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  color:var(--text);
+  cursor:pointer;
+  border-left:2px solid transparent;
+  transition:background .15s, border-color .15s;
+}
+.med-btn:hover{background:var(--surface2)}
+.med-btn.active{
+  background:var(--accent-dim);
+  border-left-color:var(--accent);
+  color:var(--accent);
+  font-weight:400;
+}
+.med-btn .conc{
+  font-size:10px;
+  color:var(--muted);
+  display:block;
+  margin-top:1px;
+}
+.med-btn.active .conc{color:var(--accent);opacity:0.7}
+
+/* ── MAIN AREA ── */
+.main{
+  flex:1;
+  padding:24px;
+  overflow-y:auto;
+  background:var(--bg);
+}
+
+/* ── PLACEHOLDER ── */
+.placeholder{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:60vh;
+  color:var(--muted);
+  gap:12px;
+}
+.placeholder svg{opacity:0.25}
+.placeholder p{font-size:13px}
+.placeholder p.small{font-size:11px}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px;
+  margin-bottom:16px;
+}
+
+.card h2{
+  font-family:'Instrument Serif',serif;
+  font-size:1.4rem;
+  font-weight:400;
+  color:var(--text);
+  letter-spacing:-0.01em;
+}
+
+.card .conc-tag{
+  display:inline-block;
+  background:var(--surface2);
+  color:var(--muted);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:2px 10px;
+  font-size:11px;
+  margin-top:6px;
+}
+
+.cat-badge{
+  display:inline-block;
+  border-radius:20px;
+  padding:2px 10px;
+  font-size:10px;
+  margin-left:8px;
+  vertical-align:middle;
+  letter-spacing:0.04em;
+}
+
+.input-row{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.input-group{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.input-group label{
+  font-size:10px;
+  font-weight:400;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+
+.input-group input,
+.input-group select{
+  padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:13px;
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  outline:none;
+  background:var(--bg);
+  color:var(--text);
+  transition:border-color .2s;
+}
+.input-group input:focus,
+.input-group select:focus{border-color:var(--accent)}
+
+.weight-range{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.weight-range input[type=range]{
+  flex:1;
+  accent-color:var(--accent);
+}
+.weight-range span{font-size:12px;color:var(--muted)}
+
+.indication-select{margin-top:14px}
+.indication-select label{
+  font-size:10px;
+  font-weight:400;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  display:block;
+  margin-bottom:5px;
+}
+.indication-select select{
+  width:100%;
+  padding:8px 12px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font-size:12px;
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  outline:none;
+  background:var(--bg);
+  color:var(--text);
+}
+.indication-select select:focus{border-color:var(--accent)}
+
+/* ── RESULT CARD ── */
+.result-card{
+  background:var(--accent);
+  border-radius:10px;
+  padding:20px;
+  color:#fff;
+  margin-top:16px;
+}
+.result-card .dose-label{
+  font-size:10px;
+  opacity:0.65;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.result-card .dose-main{
+  font-family:'Instrument Serif',serif;
+  font-size:2.2rem;
+  font-weight:400;
+  margin:6px 0 4px;
+  letter-spacing:-0.02em;
+}
+.result-card .dose-alt{font-size:14px;opacity:0.8}
+.result-card .freq{
+  display:inline-block;
+  background:rgba(255,255,255,0.18);
+  border-radius:20px;
+  padding:3px 12px;
+  font-size:11px;
+  margin-top:10px;
+  letter-spacing:0.02em;
+}
+.result-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.result-mini{
+  background:rgba(255,255,255,0.1);
+  border-radius:6px;
+  padding:10px 12px;
+}
+.result-mini .lbl{
+  font-size:10px;
+  opacity:0.65;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.result-mini .val{font-size:15px;font-weight:400;margin-top:3px}
+
+/* ── NOTE / WARNING ── */
+.note-card{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+  font-size:12px;
+  color:var(--text);
+  margin-top:12px;
+}
+.note-card strong{
+  display:block;
+  margin-bottom:4px;
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+
+.no-result{
+  background:var(--surface2);
+  border-radius:8px;
+  padding:16px;
+  text-align:center;
+  color:var(--muted);
+  margin-top:12px;
+  font-size:12px;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){
+  .layout{flex-direction:column;overflow:visible}
+  .sidebar{width:100%;max-height:240px;border-right:none;border-bottom:1px solid var(--border)}
+  .main{padding:16px}
+  .result-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-logo">~/home<span>.html</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">home</a>
+    <a href="labs.html" class="nav-link">labs</a>
+    <a href="clipboard.html" class="nav-link">clipboard</a>
+    <a href="dose.html" class="nav-link active">dose</a>
+  </div>
+</nav>
+
+<div class="sub-header">
+  <h1>Pediatric Dose Calculator</h1>
+  <p>ขนาดยาที่ใช้บ่อยในเด็ก · โรงพยาบาลมหาสารคาม · ปรับปรุง ปี 2568</p>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="ค้นหายา / Search..." oninput="filterMeds()" autocomplete="off">
+    </div>
+    <div id="med-list"></div>
+  </div>
+  <div class="main" id="main-content">
+    <div class="placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+      </svg>
+      <p>เลือกยาจากรายการ</p>
+      <p class="small">Select a medication from the list</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const MEDS = [
+  {
+    id: 1, category: "Antimicrobial", name: "Amoxicillin",
+    concentration_label: "250 mg/5ml", conc_mg_per_ml: 50,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Infants >3 months & Children (standard)", dosage: "20–40 mg/kg/day", mg_min: 20, mg_max: 40, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: 500 },
+      { label: "Neonates & Infants ≤3 months", dosage: "15 mg/kg/dose", mg_min: 15, mg_max: 15, per: "dose", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+      { label: "Acute otitis media (high dose)", dosage: "80–90 mg/kg/day", mg_min: 80, mg_max: 90, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+    ], notes: ["*Loading dose 10 mg/kg on day 1 (for Azithromycin-like regimens — not applicable here)"]
+  },
+  {
+    id: 2, category: "Antimicrobial", name: "Amoxicillin + Clavulanic acid",
+    concentration_label: "457 mg/5ml (~400 AMX)", conc_mg_per_ml: 80,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Neonates — 25 mg/kg AMX", dosage: "25 mg/kg (of AMX)", mg_min: 25, mg_max: 25, per: "dose", doses_per_day: 3, freq: "q8h", max_dose_mg: null },
+      { label: "Sinusitis — 45 mg/kg/day AMX", dosage: "45 mg/kg/day (of AMX)", mg_min: 45, mg_max: 45, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+      { label: "Otitis Media — 90 mg/kg/day AMX", dosage: "90 mg/kg/day (of AMX)", mg_min: 90, mg_max: 90, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 3, category: "Antimicrobial", name: "Dicloxacillin",
+    concentration_label: "62.5 mg/5ml", conc_mg_per_ml: 12.5,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "<40 kg", dosage: "25–50 mg/kg/day", mg_min: 25, mg_max: 50, per: "day", doses_per_day: 4, freq: "q6h", max_dose_mg: null, weight_limit: 40 },
+      { label: ">40 kg — fixed dose", dosage: "125–500 mg/dose", fixed_ml_min: 50, fixed_ml_max: 200, per: "dose", doses_per_day: 4, freq: "q6h", fixed: true, weight_limit_min: 40 },
+    ], notes: []
+  },
+  {
+    id: 4, category: "Antimicrobial", name: "Azithromycin",
+    concentration_label: "200 mg/5ml", conc_mg_per_ml: 40,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "10 mg/kg/day (day 1), then 5 mg/kg/day", mg_min: 5, mg_max: 10, per: "day", doses_per_day: 1, freq: "q24h", max_dose_mg: 500 },
+    ], notes: ["*Loading dose: 10 mg/kg on Day 1, then 5 mg/kg on Days 2–5"]
+  },
+  {
+    id: 5, category: "Antimicrobial", name: "Erythromycin",
+    concentration_label: "125 mg/5ml", conc_mg_per_ml: 25,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "30–50 mg/kg/day", mg_min: 30, mg_max: 50, per: "day", doses_per_day: 3, freq: "q6–12h", max_dose_mg: 2000/3 },
+    ], notes: ["Max: 2 g/day"]
+  },
+  {
+    id: 6, category: "Antimicrobial", name: "Cephalexin",
+    concentration_label: "125 mg/5ml", conc_mg_per_ml: 25,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "25–100 mg/kg/day", mg_min: 25, mg_max: 100, per: "day", doses_per_day: 4, freq: "q6–8h", max_dose_mg: 1000 },
+    ], notes: ["Max: 4 g/day"]
+  },
+  {
+    id: 7, category: "Antimicrobial", name: "Cefixime",
+    concentration_label: "100 mg/5ml", conc_mg_per_ml: 20,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "8 mg/kg/day", mg_min: 8, mg_max: 8, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 8, category: "Antimicrobial", name: "Co-trimoxazole (TMP component)",
+    concentration_label: "200 mg/5ml (TMP 40mg/5ml)", conc_mg_per_ml: 8,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "6–10 mg/kg/day TMP", mg_min: 6, mg_max: 10, per: "day", doses_per_day: 2, freq: "q12h", max_dose_mg: null },
+      { label: "Severe infection**", dosage: "15–20 mg/kg/day TMP", mg_min: 15, mg_max: 20, per: "day", doses_per_day: 4, freq: "q6–8h", max_dose_mg: null },
+    ], notes: ["**Serious infection: Melioidosis, Pneumocystis pneumonia (PCP)"]
+  },
+  {
+    id: 9, category: "Antimicrobial", name: "Metronidazole",
+    concentration_label: "40 mg/ml", conc_mg_per_ml: 40,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "10–30 mg/kg/day", mg_min: 10, mg_max: 30, per: "day", doses_per_day: 4, freq: "q6h", max_dose_mg: 1000 },
+    ], notes: ["Max: 4 g/day"]
+  },
+  {
+    id: 10, category: "Antimicrobial", name: "Clindamycin (20 mg/ml)",
+    concentration_label: "20 mg/ml", conc_mg_per_ml: 20,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "8–40 mg/kg/day", mg_min: 8, mg_max: 40, per: "day", doses_per_day: 4, freq: "q6–8h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 11, category: "Antimicrobial", name: "Clindamycin (75 mg/ml)",
+    concentration_label: "75 mg/ml", conc_mg_per_ml: 75,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "8–40 mg/kg/day", mg_min: 8, mg_max: 40, per: "day", doses_per_day: 4, freq: "q6–8h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 12, category: "Antimicrobial", name: "Ketoconazole",
+    concentration_label: "10 mg/ml", conc_mg_per_ml: 10,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "3.3–6.6 mg/kg/day", mg_min: 3.3, mg_max: 6.6, per: "day", doses_per_day: 1, freq: "q24h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 13, category: "Antimicrobial", name: "Albendazole",
+    concentration_label: "400 mg/20ml (20 mg/ml)", conc_mg_per_ml: 20,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Strongyloidiasis/Tapeworm — <2 years", dosage: "200 mg/day × 3 days", fixed_ml_min: 10, fixed_ml_max: 10, fixed: true, freq: "q24h × 3 days", doses_per_day: 1 },
+      { label: "Strongyloidiasis/Tapeworm — ≥2 years", dosage: "400 mg/day × 3 days", fixed_ml_min: 20, fixed_ml_max: 20, fixed: true, freq: "q24h × 3 days", doses_per_day: 1 },
+      { label: "Hookworm/Pinworm/Roundworm — <2 years", dosage: "200 mg single dose", fixed_ml_min: 10, fixed_ml_max: 10, fixed: true, freq: "Single dose", doses_per_day: 1 },
+      { label: "Hookworm/Pinworm/Roundworm — ≥2 years", dosage: "400 mg single dose", fixed_ml_min: 20, fixed_ml_max: 20, fixed: true, freq: "Single dose", doses_per_day: 1 },
+    ], notes: []
+  },
+  {
+    id: 14, category: "Analgesic / Antipyretic", name: "Paracetamol",
+    concentration_label: "120 mg/5ml", conc_mg_per_ml: 24,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "10–15 mg/kg/dose", mg_min: 10, mg_max: 15, per: "dose", doses_per_day: 4, freq: "q4–6h (prn)", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 15, category: "Analgesic / Antipyretic", name: "Ibuprofen",
+    concentration_label: "100 mg/5ml", conc_mg_per_ml: 20,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "5–10 mg/kg/dose", mg_min: 5, mg_max: 10, per: "dose", doses_per_day: 3, freq: "q6–8h (prn)", max_dose_mg: null },
+    ], notes: ["Max: 40 mg/kg/day"]
+  },
+  {
+    id: 16, category: "Gastro-intestinal", name: "Domperidone",
+    concentration_label: "5 mg/5ml (1 mg/ml)", conc_mg_per_ml: 1,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "0.25 mg/kg/dose", mg_min: 0.25, mg_max: 0.25, per: "dose", doses_per_day: 3, freq: "q8h", max_dose_mg: null },
+    ], notes: []
+  },
+  {
+    id: 17, category: "Gastro-intestinal", name: "Simethicone drops",
+    concentration_label: "40 mg/0.6ml", conc_mg_per_ml: 66.7,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "<2 years", dosage: "20 mg/dose", fixed_ml_min: 0.3, fixed_ml_max: 0.3, fixed: true, freq: "q8h", doses_per_day: 3 },
+      { label: "2–12 years", dosage: "40 mg/dose", fixed_ml_min: 0.6, fixed_ml_max: 0.6, fixed: true, freq: "q8h", doses_per_day: 3 },
+      { label: ">12 years", dosage: "40–125 mg/dose", fixed_ml_min: 0.6, fixed_ml_max: 1.9, fixed: true, freq: "q8h", doses_per_day: 3 },
+    ], notes: ["Max: 500 mg/day"]
+  },
+  {
+    id: 18, category: "Gastro-intestinal", name: "Hyoscine",
+    concentration_label: "5 mg/5ml", conc_mg_per_ml: 1,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: ">1 year", dosage: "5–10 mg/dose", fixed_ml_min: 5, fixed_ml_max: 10, fixed: true, freq: "q8h", doses_per_day: 3 },
+    ], notes: ["Use only for children >1 year. 1–2 teaspoons per dose."]
+  },
+  {
+    id: 19, category: "Antihistamine", name: "Chlorpheniramine",
+    concentration_label: "2 mg/5ml", conc_mg_per_ml: 0.4,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "0.35 mg/kg/day", mg_min: 0.35, mg_max: 0.35, per: "day", doses_per_day: 3, freq: "q4–6h", max_dose_mg: 4 },
+      { label: "Urticaria", dosage: "1 mg/kg/day", mg_min: 1, mg_max: 1, per: "day", doses_per_day: 3, freq: "q4–6h", max_dose_mg: 4 },
+    ], notes: ["Max: 12 mg/day"]
+  },
+  {
+    id: 20, category: "Antihistamine", name: "Loratadine",
+    concentration_label: "5 mg/5ml", conc_mg_per_ml: 1,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "2–5 years — 5 mg/day", dosage: "5 mg/day", fixed_ml_min: 5, fixed_ml_max: 5, fixed: true, freq: "q24h", doses_per_day: 1 },
+      { label: ">6 years — 10 mg/day", dosage: "10 mg/day", fixed_ml_min: 10, fixed_ml_max: 10, fixed: true, freq: "q24h", doses_per_day: 1 },
+    ], notes: []
+  },
+  {
+    id: 21, category: "Antihistamine", name: "Hydroxyzine",
+    concentration_label: "10 mg (tablet)", conc_mg_per_ml: null,
+    unit: "tablet", liquid: false,
+    indications: [
+      { label: "6 months–1 year", dosage: "10–15 mg/day", fixed_unit_min: 1, fixed_unit_max: 1.5, fixed: true, freq: "q8h", doses_per_day: 3, note_unit: "tablets/day" },
+      { label: "6–10 years", dosage: "20–50 mg/day", fixed_unit_min: 2, fixed_unit_max: 5, fixed: true, freq: "q8h", doses_per_day: 3, note_unit: "tablets/day" },
+    ], notes: ["Dose depends on age; adjust per clinical response"]
+  },
+  {
+    id: 22, category: "Cough Preparation", name: "Guaifenesin",
+    concentration_label: "100 mg/5ml", conc_mg_per_ml: 20,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "4–5 years", dosage: "½–1 tsp", fixed_ml_min: 2.5, fixed_ml_max: 5, fixed: true, freq: "q4h", doses_per_day: 4 },
+      { label: "6–11 years", dosage: "1–2 tsp", fixed_ml_min: 5, fixed_ml_max: 10, fixed: true, freq: "q4h", doses_per_day: 4 },
+      { label: "≥12 years", dosage: "2 tsp", fixed_ml_min: 10, fixed_ml_max: 10, fixed: true, freq: "q4h", doses_per_day: 4 },
+    ], notes: []
+  },
+  {
+    id: 23, category: "Cough Preparation", name: "Acetylcysteine",
+    concentration_label: "200 mg (tablet/sachet)", conc_mg_per_ml: null,
+    unit: "tablet", liquid: false,
+    indications: [
+      { label: "<2 years", dosage: "200 mg OD", fixed_unit_min: 1, fixed_unit_max: 1, fixed: true, freq: "q24h", doses_per_day: 1, note_unit: "tablets/day" },
+      { label: "≥2–6 years", dosage: "200 mg BID", fixed_unit_min: 2, fixed_unit_max: 2, fixed: true, freq: "q12h", doses_per_day: 2, note_unit: "tablets/day" },
+      { label: ">6 years", dosage: "200 mg TID", fixed_unit_min: 3, fixed_unit_max: 3, fixed: true, freq: "q8h", doses_per_day: 3, note_unit: "tablets/day" },
+    ], notes: []
+  },
+  {
+    id: 24, category: "Bronchodilator", name: "Procaterol (Meptin)",
+    concentration_label: "25 mcg/5ml", conc_mg_per_ml: 0.005,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Standard", dosage: "1.25 mcg/kg/dose", mg_min: 0.00125, mg_max: 0.00125, per: "dose", doses_per_day: 2, freq: "q12–24h", max_dose_mg: null },
+    ], notes: ["Dose in mcg: 1.25 mcg × weight (kg)"]
+  },
+  {
+    id: 25, category: "Bronchodilator", name: "Salbutamol",
+    concentration_label: "2 mg (tablet)", conc_mg_per_ml: null,
+    unit: "tablet", liquid: false,
+    indications: [
+      { label: "<6 years — weight-based", dosage: "0.3–0.6 mg/kg/day", mg_min: 0.3, mg_max: 0.6, per: "day", doses_per_day: 3, freq: "q6–8h", max_dose_mg: 2, fixed: false, is_tab: true, tab_mg: 2 },
+      { label: "6–12 years — fixed dose", dosage: "2 mg/dose", fixed_unit_min: 1, fixed_unit_max: 1, fixed: true, freq: "q6–8h", doses_per_day: 3, note_unit: "tablet" },
+      { label: ">12 years — fixed dose", dosage: "2–4 mg/dose", fixed_unit_min: 1, fixed_unit_max: 2, fixed: true, freq: "q6–8h", doses_per_day: 3, note_unit: "tablet" },
+    ], notes: ["<6y Max: 12 mg/day | >12y Max: 32 mg/day"]
+  },
+  {
+    id: 26, category: "Laxative", name: "Lactulose",
+    concentration_label: "10 g/15ml", conc_mg_per_ml: null,
+    unit: "ml", liquid: true,
+    indications: [
+      { label: "Infants", dosage: "1.7–6.7 g/day", fixed_ml_min: 2.5, fixed_ml_max: 10, fixed: true, freq: "q24h", doses_per_day: 1 },
+      { label: "Children", dosage: "26.7–60 g/day", fixed_ml_min: 40, fixed_ml_max: 90, fixed: true, freq: "q24h", doses_per_day: 1 },
+    ], notes: []
+  }
+];
+
+const CATEGORIES = [...new Set(MEDS.map(m => m.category))];
+const CAT_COLORS = {
+  "Antimicrobial": "#2d5a42", "Analgesic / Antipyretic": "#8b3a8b",
+  "Gastro-intestinal": "#2a6a2a", "Antihistamine": "#8b4a00",
+  "Cough Preparation": "#0a5a6a", "Bronchodilator": "#6a1a1a",
+  "Laxative": "#4a4a00"
+};
+
+let selectedMed = null;
+
+function filterMeds() {
+  const q = document.getElementById('search').value.toLowerCase();
+  renderList(q);
+}
+
+function renderList(query = '') {
+  const listEl = document.getElementById('med-list');
+  let html = '';
+  CATEGORIES.forEach(cat => {
+    const meds = MEDS.filter(m => m.category === cat &&
+      (m.name.toLowerCase().includes(query) || cat.toLowerCase().includes(query) || m.concentration_label.toLowerCase().includes(query)));
+    if (!meds.length) return;
+    html += `<div class="cat-label">${cat}</div>`;
+    meds.forEach(m => {
+      html += `<button class="med-btn ${selectedMed && selectedMed.id === m.id ? 'active' : ''}" onclick="selectMed(${m.id})">
+        ${m.name}<span class="conc">${m.concentration_label}</span>
+      </button>`;
+    });
+  });
+  listEl.innerHTML = html || '<div style="padding:16px;font-size:12px;color:var(--muted)">ไม่พบยา / Not found</div>';
+}
+
+function selectMed(id) {
+  selectedMed = MEDS.find(m => m.id === id);
+  renderList(document.getElementById('search').value.toLowerCase());
+  renderMain();
+}
+
+function renderMain() {
+  const m = selectedMed;
+  const catColor = CAT_COLORS[m.category] || 'var(--accent)';
+  const indOptions = m.indications.map((ind, i) => `<option value="${i}">${ind.label}</option>`).join('');
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h2>${m.name}</h2>
+          <span class="conc-tag">${m.concentration_label}</span>
+          <span class="cat-badge" style="background:${catColor}18;color:${catColor};border:1px solid ${catColor}33">${m.category}</span>
+        </div>
+      </div>
+      <div class="input-row">
+        <div class="input-group" style="flex:1;min-width:200px;">
+          <label>น้ำหนัก / Body Weight (kg)</label>
+          <div class="weight-range">
+            <input type="range" id="wt-slider" min="2" max="60" step="0.5" value="15" oninput="syncWeight('slider')">
+            <input type="number" id="wt-num" min="0.5" max="100" step="0.5" value="15" style="width:80px" oninput="syncWeight('num')">
+            <span>kg</span>
+          </div>
+        </div>
+      </div>
+      <div class="indication-select" ${m.indications.length <= 1 ? 'style="display:none"' : ''}>
+        <label>Indication / ข้อบ่งใช้</label>
+        <select id="ind-select" onchange="calcDose()">${indOptions}</select>
+      </div>
+    </div>
+    <div id="result-section"></div>
+  `;
+
+  document.getElementById('wt-slider').addEventListener('input', () => syncWeight('slider'));
+  document.getElementById('wt-num').addEventListener('input', () => syncWeight('num'));
+  calcDose();
+}
+
+function syncWeight(src) {
+  const slider = document.getElementById('wt-slider');
+  const num = document.getElementById('wt-num');
+  if (src === 'slider') num.value = slider.value;
+  else slider.value = num.value;
+  calcDose();
+}
+
+function calcDose() {
+  const m = selectedMed;
+  if (!m) return;
+  const wt = parseFloat(document.getElementById('wt-num').value) || 0;
+  const indIdx = parseInt(document.getElementById('ind-select')?.value || '0');
+  const ind = m.indications[indIdx];
+  const result = document.getElementById('result-section');
+
+  if (!wt || wt <= 0) { result.innerHTML = '<div class="no-result">กรุณาใส่น้ำหนัก / Enter body weight</div>'; return; }
+
+  let html = '';
+
+  if (ind.fixed) {
+    if (m.liquid) {
+      const minMl = ind.fixed_ml_min, maxMl = ind.fixed_ml_max;
+      const minTsp = +(minMl / 5).toFixed(2), maxTsp = +(maxMl / 5).toFixed(2);
+      const sameVal = minMl === maxMl;
+      html = buildResultCard({
+        doseMain: sameVal ? `${minMl} ml` : `${minMl}–${maxMl} ml`,
+        doseAlt: sameVal ? `(${fmt(minTsp)} ช้อนชา)` : `(${fmt(minTsp)}–${fmt(maxTsp)} ช้อนชา)`,
+        freq: ind.freq,
+        dosage: ind.dosage,
+        extras: []
+      });
+    } else {
+      const minU = ind.fixed_unit_min, maxU = ind.fixed_unit_max;
+      const unit = ind.note_unit || m.unit;
+      const sameVal = minU === maxU;
+      html = buildResultCard({
+        doseMain: sameVal ? `${fmt(minU)} ${unit}` : `${fmt(minU)}–${fmt(maxU)} ${unit}`,
+        doseAlt: ind.dosage,
+        freq: ind.freq,
+        dosage: '',
+        extras: []
+      });
+    }
+  } else if (ind.is_tab) {
+    const dayDoseMin = wt * ind.mg_min, dayDoseMax = wt * ind.mg_max;
+    const dosePerMin = dayDoseMin / ind.doses_per_day, dosePerMax = dayDoseMax / ind.doses_per_day;
+    const tabMin = Math.ceil(dosePerMin / ind.tab_mg), tabMax = Math.ceil(dosePerMax / ind.tab_mg);
+    const maxDayMg = ind.max_dose_mg ? ind.max_dose_mg * ind.doses_per_day : null;
+    html = buildResultCard({
+      doseMain: `${tabMin === tabMax ? tabMin : tabMin + '–' + tabMax} tablet(s)/dose`,
+      doseAlt: `(${fmt(dosePerMin)}–${fmt(dosePerMax)} mg/dose)`,
+      freq: ind.freq,
+      dosage: ind.dosage,
+      extras: maxDayMg ? [`Max: ${maxDayMg} mg/day`] : []
+    });
+  } else {
+    let doseMin_mg, doseMax_mg;
+    if (ind.per === 'dose') {
+      doseMin_mg = wt * ind.mg_min;
+      doseMax_mg = wt * ind.mg_max;
+    } else {
+      doseMin_mg = (wt * ind.mg_min) / ind.doses_per_day;
+      doseMax_mg = (wt * ind.mg_max) / ind.doses_per_day;
+    }
+    if (ind.max_dose_mg) { doseMin_mg = Math.min(doseMin_mg, ind.max_dose_mg); doseMax_mg = Math.min(doseMax_mg, ind.max_dose_mg); }
+
+    if (m.liquid && m.conc_mg_per_ml) {
+      const mlMin = doseMin_mg / m.conc_mg_per_ml;
+      const mlMax = doseMax_mg / m.conc_mg_per_ml;
+      const tspMin = mlMin / 5, tspMax = mlMax / 5;
+      const same = Math.abs(mlMin - mlMax) < 0.05;
+      const extras = [];
+      if (ind.max_dose_mg) extras.push(`Max dose: ${ind.max_dose_mg} mg`);
+      html = buildResultCard({
+        doseMain: same ? `${fmt(mlMin,1)} ml` : `${fmt(mlMin,1)}–${fmt(mlMax,1)} ml`,
+        doseAlt: same ? `(${fmt(tspMin,2)} ช้อนชา · ${fmt(doseMin_mg,1)} mg)` : `(${fmt(tspMin,2)}–${fmt(tspMax,2)} ช้อนชา · ${fmt(doseMin_mg,1)}–${fmt(doseMax_mg,1)} mg)`,
+        freq: ind.freq,
+        dosage: ind.dosage,
+        extras,
+        mini: [
+          { label: "Per day", val: same ? `${fmt(mlMin*ind.doses_per_day,1)} ml` : `${fmt(mlMin*ind.doses_per_day,1)}–${fmt(mlMax*ind.doses_per_day,1)} ml` },
+          { label: "Frequency", val: ind.freq },
+          { label: "Doses/day", val: ind.doses_per_day }
+        ]
+      });
+    } else {
+      const same = Math.abs(doseMin_mg - doseMax_mg) < 0.05;
+      html = buildResultCard({
+        doseMain: same ? `${fmt(doseMin_mg,1)} mg/dose` : `${fmt(doseMin_mg,1)}–${fmt(doseMax_mg,1)} mg/dose`,
+        doseAlt: ind.dosage,
+        freq: ind.freq, dosage: '', extras: []
+      });
+    }
+  }
+
+  if (m.notes && m.notes.length) {
+    m.notes.forEach(n => { html += `<div class="note-card"><strong>หมายเหตุ / Note</strong>${n}</div>`; });
+  }
+
+  result.innerHTML = html;
+}
+
+function buildResultCard({ doseMain, doseAlt, freq, dosage, extras = [], mini = [] }) {
+  let miniHtml = '';
+  if (mini.length) {
+    miniHtml = `<div class="result-grid">` +
+      mini.map(m => `<div class="result-mini"><div class="lbl">${m.label}</div><div class="val">${m.val}</div></div>`).join('') +
+      `</div>`;
+  }
+  let extHtml = extras.map(e => `<div style="margin-top:8px;font-size:12px;opacity:0.75">${e}</div>`).join('');
+  return `<div class="result-card">
+    <div class="dose-label">ขนาดยาต่อครั้ง / Dose per administration</div>
+    <div class="dose-main">${doseMain}</div>
+    <div class="dose-alt">${doseAlt}</div>
+    ${dosage ? `<div style="font-size:12px;opacity:0.7;margin-top:4px">${dosage}</div>` : ''}
+    <span class="freq">${freq}</span>
+    ${extHtml}
+    ${miniHtml}
+  </div>`;
+}
+
+function fmt(n, dec = 2) {
+  if (n === undefined || n === null || isNaN(n)) return '–';
+  const rounded = Math.round(n * Math.pow(10, dec)) / Math.pow(10, dec);
+  return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(dec).replace(/\.?0+$/, '');
+}
+
+renderList();
+</script>
+</body>
+</html>
