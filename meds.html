@@ -254,7 +254,7 @@ function renderList(query = '') {
     if (!meds.length) return;
     html += `<div class="cat-label">${cat}</div>`;
     meds.forEach(m => {
-      html += `<button class="med-row${m.id == selectedId ? ' active' : ''}" onclick="selectMed(${JSON.stringify(String(m.id))})">
+      html += `<button class="med-row${String(m.id) === String(selectedId) ? ' active' : ''}" onclick="selectMed('${m.id}')">
         <span class="med-row-name">${esc(m.name)}</span>
         <span class="med-row-conc">${esc(m.concentration_label)}</span>
       </button>`;
@@ -575,7 +575,7 @@ function addNote() {
   syncNotes();
   editingNotes.push('');
   renderNotes();
-  document.querySelectorAll('.note-input').slice(-1)[0]?.focus();
+  [...document.querySelectorAll('.note-input')].slice(-1)[0]?.focus();
 }
 window.addNote = addNote;
 

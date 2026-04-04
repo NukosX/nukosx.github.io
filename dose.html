@@ -719,7 +719,7 @@ function renderList(query = '') {
     if (!meds.length) return;
     html += `<div class="cat-label">${cat}</div>`;
     meds.forEach(m => {
-      html += `<button class="med-btn ${selectedMed && selectedMed.id === m.id ? 'active' : ''}" onclick="selectMed(${JSON.stringify(String(m.id))})">
+      html += `<button class="med-btn ${selectedMed && String(selectedMed.id) === String(m.id) ? 'active' : ''}" onclick="selectMed('${m.id}')">
         ${m.name}<span class="conc">${m.concentration_label}</span>
       </button>`;
     });
